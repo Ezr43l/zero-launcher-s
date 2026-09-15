@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Zero Launcher</title>
+  <desc id="description">Una consola rodeada por un cero luminoso y una trayectoria de lanzamiento.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07131d"/>
+      <stop offset="1" stop-color="#0d2530"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#10d7e8"/>
+      <stop offset="1" stop-color="#63f5a5"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="12" y="12" width="488" height="488" rx="104" fill="url(#background)" stroke="#1a4250" stroke-width="8"/>
+  <path d="M68 394h376" stroke="#173845" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="240" cy="252" r="140" fill="none" stroke="#164352" stroke-width="38"/>
+  <circle cx="240" cy="252" r="140" fill="none" stroke="url(#accent)" stroke-width="15" filter="url(#glow)"/>
+  <rect x="142" y="188" width="196" height="128" rx="20" fill="#061016" stroke="#36d9e7" stroke-width="5"/>
+  <path d="M176 229l31 25-31 25M222 279h54" fill="none" stroke="#e8fbff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M326 176c38-52 76-72 119-82-9 43-30 82-81 120" fill="#0b1b24" stroke="url(#accent)" stroke-width="10" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M374 139l31-9-9 31z" fill="#e8fbff"/>
+  <path d="M342 205c22 7 37 21 44 44-18-1-35 5-52 17 6-24 9-44 8-61z" fill="#10d7e8"/>
+  <circle cx="240" cy="252" r="177" fill="none" stroke="#1b5260" stroke-width="3" stroke-dasharray="8 18"/>
+</svg>

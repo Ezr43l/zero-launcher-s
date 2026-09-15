@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" role="img" aria-labelledby="title description">
+  <title id="title">Zero Launcher</title>
+  <desc id="description">Instalador asistido de aplicaciones en alta disponibilidad.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#061019"/><stop offset="0.55" stop-color="#0a1b25"/><stop offset="1" stop-color="#0c2931"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#10d7e8"/><stop offset="1" stop-color="#63f5a5"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1a3b47" stroke-width="1" opacity="0.35"/>
+    </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1280" height="360" rx="34" fill="url(#background)"/>
+  <rect x="2" y="2" width="1276" height="356" rx="32" fill="none" stroke="#1d5261" stroke-width="4"/>
+  <rect x="3" y="3" width="1274" height="354" rx="31" fill="url(#grid)"/>
+  <circle cx="178" cy="180" r="109" fill="#07131b" stroke="#153a47" stroke-width="27"/>
+  <circle cx="178" cy="180" r="109" fill="none" stroke="url(#accent)" stroke-width="11" filter="url(#glow)"/>
+  <rect x="104" y="133" width="148" height="96" rx="15" fill="#050c12" stroke="#31d6e4" stroke-width="4"/>
+  <path d="M128 163l24 18-24 19M165 200h40" fill="none" stroke="#eefcff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M244 127c29-40 58-55 91-63-7 33-23 62-62 92" fill="#091820" stroke="url(#accent)" stroke-width="7" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M280 99l24-7-7 24z" fill="#f1feff"/>
+  <path d="M256 150c17 5 28 16 34 34-14-1-27 4-40 13 5-18 7-34 6-47z" fill="#12d6e7"/>
+  <text x="370" y="145" fill="#f2fcff" font-family="ui-monospace, SFMono-Regular, Consolas, Liberation Mono, monospace" font-size="76" font-weight="700" letter-spacing="5">ZERO LAUNCHER</text>
+  <text x="374" y="205" fill="#8bc6d3" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="28">Instalador asistido de aplicaciones en alta disponibilidad</text>
+  <rect x="374" y="244" width="318" height="42" rx="21" fill="#0d3540" stroke="#15cddd"/>
+  <text x="533" y="272" text-anchor="middle" fill="#9df7ff" font-family="ui-monospace, Consolas, monospace" font-size="18">UNRAID / LINUX / RASPBERRY PI</text>
+  <rect x="708" y="244" width="184" height="42" rx="21" fill="#123a36" stroke="#56e49c"/>
+  <text x="800" y="272" text-anchor="middle" fill="#b9ffd7" font-family="ui-monospace, Consolas, monospace" font-size="19">STABLE / DEV</text>
+  <rect x="908" y="244" width="218" height="42" rx="21" fill="#102e3c" stroke="#4bb5e8"/>
+  <text x="1017" y="272" text-anchor="middle" fill="#bceaff" font-family="ui-monospace, Consolas, monospace" font-size="19">GHCR / LOCAL</text>
+  <text x="1160" y="318" text-anchor="end" fill="#527b86" font-family="ui-monospace, Consolas, monospace" font-size="16">© 2026 EZRAEL</text>
+</svg>
