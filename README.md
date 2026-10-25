@@ -14,6 +14,17 @@ Raspberry Pi OS de 64 bits y Unraid.
 
 Cada aplicación se instala como un único contenedor.
 
+## Acceso a un registro privado
+
+Cuando se utiliza Local Registry, el instalador prepara HTTPS y una credencial
+propia de Docker para descargar y publicar imágenes. Obtiene el certificado desde
+el contenedor local de confianza y conserva ese certificado al reiniciar Unraid.
+No muestra tokens ni los añade al registro de ejecución.
+
+Una instalación antigua de Local Registry debe recibir primero su actualización
+de seguridad. El instalador lo indica si falta su identidad de certificados;
+no desactiva la comprobación del certificado para continuar.
+
 ## Aplicaciones disponibles
 
 | Aplicación | Función |
@@ -164,4 +175,3 @@ Copyright © 2026 Ezrael.
 
 Unraid es una marca de Lime Technology, Inc. Este proyecto es comunitario y no está
 afiliado, patrocinado ni respaldado oficialmente por Lime Technology.
-

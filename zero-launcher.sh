@@ -8,7 +8,7 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 readonly PROGRAM_NAME="Zero Launcher"
-readonly PROGRAM_VERSION="1.0.1"
+readonly PROGRAM_VERSION="1.0.2"
 readonly DEFAULT_TARGET_DIR="/boot/config/plugins/dockerMan/templates-user"
 readonly DEFAULT_BACKUP_DIR="/boot/config/zero-launcher/backups/templates"
 readonly DEFAULT_LOG_DIR="/mnt/user/appdata/zero-launcher"
@@ -44,7 +44,8 @@ ALL_APPS_SELECTED=false
 SELECTED_APPS=()
 LOCAL_REGISTRY_CONTAINER=""
 LOCAL_REGISTRY_PREFIX=""
-LOCAL_REGISTRY_SCHEME="http"
+LOCAL_REGISTRY_SCHEME="https"
+LOCAL_REGISTRY_CA=""
 LOCAL_REGISTRY_BOOTSTRAP=false
 INSTALL_MODE=""
 PROMPT_RESULT=""
@@ -574,7 +575,7 @@ render_template() {
   local channel=$4
   local install_mode=$5
   local registry_prefix=${6:-}
-  local registry_scheme=${7:-http}
+  local registry_scheme=${7:-https}
   local image
   local registry_url=""
   local local_variant=false
@@ -1185,9 +1186,52 @@ choose_channels() {
 registry_reachable() {
   local server=${1%%/*}
   local status
+  local -a tls_args=()
+  [[ -z "$LOCAL_REGISTRY_CA" ]] || tls_args=(--cacert "$LOCAL_REGISTRY_CA")
   status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
-    --connect-timeout 5 "$2://${server}/v2/" || true)
+    --connect-timeout 5 --max-time 8 "${tls_args[@]}" "$2://${server}/v2/" || true)
   [[ "$status" == "200" || "$status" == "401" ]]
+}
+
+load_local_registry_ca() {
+  ensure_work_dir
+  LOCAL_REGISTRY_CA="$WORK_DIR/local-registry-ca.crt"
+  docker cp "$LOCAL_REGISTRY_CONTAINER:/var/lib/registry/.local-registry/security/ca.pem" "$LOCAL_REGISTRY_CA" >/dev/null 2>&1 || {
+    error "Local Registry necesita la actualización de seguridad con HTTPS antes de continuar."
+    return 1
+  }
+}
+
+configure_local_registry_access() {
+  local endpoint=${LOCAL_REGISTRY_PREFIX%%/*} credential_json cert_dir hook
+  local -a credential=()
+  [[ "$DRY_RUN" != "true" ]] || return 0
+  load_local_registry_ca || return 1
+  cert_dir="/etc/docker/certs.d/$endpoint"
+  mkdir -p -- "$cert_dir" || return 1
+  install -m 0644 -- "$LOCAL_REGISTRY_CA" "$cert_dir/ca.crt" || return 1
+  credential_json=$(docker exec "$LOCAL_REGISTRY_CONTAINER" python3 /app/security.py docker-client) || return 1
+  mapfile -t credential < <(printf '%s' "$credential_json" | docker exec -i "$LOCAL_REGISTRY_CONTAINER" python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["username"]); print(d["password"])')
+  [[ ${#credential[@]} -eq 2 ]] || { error "No se pudo preparar la credencial de Docker."; return 1; }
+  printf '%s\n' "${credential[1]}" | docker login "$endpoint" --username "${credential[0]}" --password-stdin >/dev/null || return 1
+  unset credential_json credential
+  if [[ "$PLATFORM" == "unraid" ]]; then
+    mkdir -p -- /boot/config/zero-launcher/certs || return 1
+    install -m 0644 -- "$LOCAL_REGISTRY_CA" "/boot/config/zero-launcher/certs/$endpoint.crt" || return 1
+    hook=/boot/config/zero-launcher/restore-registry-ca.sh
+    printf '%s\n' '#!/bin/bash' 'set -eu' \
+      'for certificate in /boot/config/zero-launcher/certs/*.crt; do' \
+      '  [[ -f "$certificate" ]] || continue' \
+      '  endpoint=${certificate##*/}; endpoint=${endpoint%.crt}' \
+      '  [[ "$endpoint" =~ ^[A-Za-z0-9._-]+:[0-9]+$ ]] || continue' \
+      '  mkdir -p -- "/etc/docker/certs.d/$endpoint"' \
+      '  install -m 0644 -- "$certificate" "/etc/docker/certs.d/$endpoint/ca.crt"' \
+      'done' >"$hook"
+    chmod 0700 "$hook"
+    grep -Fq 'bash /boot/config/zero-launcher/restore-registry-ca.sh' /boot/config/go || \
+      printf '\nbash /boot/config/zero-launcher/restore-registry-ca.sh\n' >>/boot/config/go
+  fi
+  success "Docker preparado con certificado verificado y permiso para descargar y publicar."
 }
 
 find_local_registry_container() {
@@ -1238,7 +1282,7 @@ prepare_template_for_app() {
   fetch_template "$app_id" "$raw" || return 1
   validate_template "$raw" "$app_id" || return 1
   render_template "$raw" "$rendered" "$app_id" "$channel" "$mode" \
-    "${LOCAL_REGISTRY_PREFIX:-}" "${LOCAL_REGISTRY_SCHEME:-http}" || return 1
+    "${LOCAL_REGISTRY_PREFIX:-}" "${LOCAL_REGISTRY_SCHEME:-https}" || return 1
   if [[ "$mode" == "local" ]]; then
     expected_image=$(local_image "$app_id" "$channel" "$LOCAL_REGISTRY_PREFIX")
   else
@@ -1257,11 +1301,12 @@ prepare_local_registry_requirement() {
     port=$(registry_port_from_container "$container") || \
       die "Local Registry existe, pero no publica el puerto interno 5000."
     LOCAL_REGISTRY_PREFIX="127.0.0.1:$port"
-    LOCAL_REGISTRY_SCHEME="http"
+    LOCAL_REGISTRY_SCHEME="https"
     state=$(container_state "$container")
     if [[ "$state" == "running" ]]; then
+      load_local_registry_ca || return 1
       registry_reachable "$LOCAL_REGISTRY_PREFIX" "$LOCAL_REGISTRY_SCHEME" || \
-        die "Local Registry está arrancado, pero no responde en http://$LOCAL_REGISTRY_PREFIX/v2/."
+        die "Local Registry está arrancado, pero no responde con un certificado válido en https://$LOCAL_REGISTRY_PREFIX/v2/."
       APP_ACTIONS[local-registry]="keep"
       success "Local Registry encontrado en $LOCAL_REGISTRY_PREFIX. Se reutilizará."
     elif [[ "$state" == "exited" || "$state" == "created" ]]; then
@@ -1282,7 +1327,7 @@ prepare_local_registry_requirement() {
   prepare_template_for_app local-registry public stable || return 1
   port=$(get_config_value_by_target "${APP_TEMPLATE_PATHS[local-registry]}" 5000)
   LOCAL_REGISTRY_PREFIX="127.0.0.1:$port"
-  LOCAL_REGISTRY_SCHEME="http"
+  LOCAL_REGISTRY_SCHEME="https"
 }
 
 selected_uses_local_registry() {
@@ -1720,6 +1765,8 @@ execute_plan() {
   if selected_uses_local_registry; then
     execute_app local-registry || return 1
     if [[ "$DRY_RUN" != "true" ]]; then
+      LOCAL_REGISTRY_CONTAINER=${LOCAL_REGISTRY_CONTAINER:-$(app_container local-registry)}
+      configure_local_registry_access || return 1
       wait_registry_ready || {
         error "Local Registry no responde. No se instalarán aplicaciones que dependan de él."
         return 1
@@ -1744,7 +1791,8 @@ reset_installation_state() {
   ALL_APPS_SELECTED=false
   LOCAL_REGISTRY_CONTAINER=""
   LOCAL_REGISTRY_PREFIX=""
-  LOCAL_REGISTRY_SCHEME="http"
+  LOCAL_REGISTRY_SCHEME="https"
+  LOCAL_REGISTRY_CA=""
   LOCAL_REGISTRY_BOOTSTRAP=false
   INSTALL_MODE=""
   for app_id in "${APP_IDS[@]}"; do

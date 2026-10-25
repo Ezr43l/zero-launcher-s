@@ -100,11 +100,11 @@ test_local_render() {
   local output="$TEST_WORK_DIR/vault-local.xml"
   make_fixture vault-guardian "$source"
   render_template "$source" "$output" vault-guardian stable local \
-    "127.0.0.1:5000" "http"
+    "127.0.0.1:5000" "https"
   assert_contains "$output" \
     '<Repository>127.0.0.1:5000/vault-guardian-s:stable</Repository>' \
     "No se generó el repositorio local"
-  assert_contains "$output" '<Registry>http://127.0.0.1:5000</Registry>' \
+  assert_contains "$output" '<Registry>https://127.0.0.1:5000</Registry>' \
     "No se generó la dirección local"
   assert_contains "$output" '<TemplateURL/>' "La plantilla local conserva la actualización remota"
 }
@@ -113,7 +113,7 @@ test_local_registry_bootstrap() {
   local source="$TEST_WORK_DIR/registry-source.xml"
   local output="$TEST_WORK_DIR/registry-local.xml"
   make_fixture local-registry "$source"
-  render_template "$source" "$output" local-registry stable local "127.0.0.1:5000" "http"
+  render_template "$source" "$output" local-registry stable local "127.0.0.1:5000" "https"
   assert_contains "$output" \
     '<Repository>ghcr.io/ezr43l/local-registry-s:stable</Repository>' \
     "Local Registry depende de sí mismo"

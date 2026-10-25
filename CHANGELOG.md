@@ -1,5 +1,15 @@
 # Historial de cambios
 
+## 1.0.2 - 2026-10-25
+
+- Adapta la instalación privada al Local Registry con HTTPS y autenticación.
+- Obtiene el certificado desde el contenedor local de confianza, prepara Docker
+  y utiliza una credencial propia para descargar y publicar, sin permiso de borrado.
+- Conserva la confianza del certificado al reiniciar Unraid y evita mostrar tokens
+  en la terminal o en los registros de ejecución.
+- Detecta instalaciones antiguas que necesitan la actualización de seguridad y
+  detiene su uso en lugar de desactivar la comprobación del certificado.
+
 ## 1.0.1 - 2026-09-15
 
 - Las carpetas nuevas de datos de RTFM se preparan para su usuario `10001:10001`, tanto en Unraid como en Linux.
